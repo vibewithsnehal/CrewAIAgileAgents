@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agile Product Backlog Review Guide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script type="text/javascript">
+        function startEventSource(projectIdea) {
+            const eventSource = new EventSource(`/stream?project_idea=${projectIdea}`);
+            eventSource.onmessage = function(event) {
+                const newElement = document.createElement("p");
+                newElement.innerText = event.data;
+                document.getElementById("progress").appendChild(newElement);
+            };
+        }
+    </script>
+</head>
+<body onload="startEventSource('{{ project_idea }}')">
+    <div class="container">
+        <h1>Agile Product Backlog Review Guide</h1>
+        <h2>Project Idea</h2>
+        <p>{{ project_idea }}</p>
+        <h2>Progress Updates</h2>
+        <div id="progress"></div>
+        <h2>Product Backlog</h2>
+        <pre id="backlog">{{ backlog }}</pre>
+        <h2>Improvement Tips</h2>
+        <pre id="improvements">{{ improvements }}</pre>
+    </div>
+</body>
+</html>
