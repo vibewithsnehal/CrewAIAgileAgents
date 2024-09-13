@@ -30,13 +30,27 @@ def kickoff():
     crew = Crew(
         agents=[product_owner, scrum_master, developer],
         tasks=[backlog_creation_task, development_task],
-        process=Process.sequential
+        process=Process.sequential,
+        verbose=True
     )
 
     result = crew.kickoff(inputs={'project_name': project_name})
 
-    # Convert the result to Markdown
-    markdown_result = "```markdown\n" + result + "\n```"
+    # Extract the conversation and final output from the result
+    conversation = getattr(result, 'tasks_outputs_string', str(result))
+    final_output = getattr(result, 'final_output', '')
+
+    # Prepare the markdown output
+    markdown_result = f"""
+# Project: {project_name}
+
+## Conversation Transcript:
+{conversation}
+
+## Final Result:
+{final_output}
+"""
+
     # Convert Markdown to HTML
     html_result = markdown.markdown(markdown_result, extensions=['fenced_code', 'tables'])
 
@@ -44,4 +58,4 @@ def kickoff():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
