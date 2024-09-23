@@ -7,12 +7,14 @@ from tasks import backlog_creation_task, development_task
 import os
 from dotenv import load_dotenv
 import markdown
+import logging
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 
+logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def index():
@@ -34,21 +36,24 @@ def kickoff():
         verbose=True
     )
 
+    logging.debug(f"Starting crew kickoff for project: {project_name}")
     result = crew.kickoff(inputs={'project_name': project_name})
+    logging.debug(f"Crew kickoff completed. Result type: {type(result)}")
 
-    # Extract the conversation and final output from the result
-    conversation = getattr(result, 'tasks_outputs_string', str(result))
-    final_output = getattr(result, 'final_output', '')
+    task_outputs = []
+    for task in crew.tasks:
+        logging.debug(f"Task: {task.description}")
+        logging.debug(f"Task output: {task.output}")
+        task_outputs.append(f"## Task: {task.description}\n\n{task.output}")
 
     # Prepare the markdown output
     markdown_result = f"""
 # Project: {project_name}
 
-## Conversation Transcript:
-{conversation}
+{''.join(task_outputs)}
 
 ## Final Result:
-{final_output}
+{result}
 """
 
     # Convert Markdown to HTML

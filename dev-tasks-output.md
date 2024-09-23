@@ -1,161 +1,136 @@
 ```python
-from flask import Flask, request, redirect, url_for, render_template, flash
+def gather_team_objectives():
+    objectives = {}
+    objectives['specific'] = input("What specific goal do you want to achieve? ")
+    objectives['measurable'] = input("How will you measure the success of this goal? ")
+    objectives['achievable'] = input("Is this goal achievable? What resources are needed? ")
+    objectives['relevant'] = input("Why is this goal relevant to your team? ")
+    objectives['time_bound'] = input("What is the timeframe to achieve this goal? ")
+    return objectives
 
-app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+def create_smart_goal(objectives):
+    smart_goal = {
+        "Specific": objectives['specific'],
+        "Measurable": objectives['measurable'],
+        "Achievable": objectives['achievable'],
+        "Relevant": objectives['relevant'],
+        "Time-bound": objectives['time_bound']
+    }
+    return smart_goal
 
-# In-memory storage for user stories
-user_stories = {}
+def provide_smart_goal_suggestions():
+    suggestions = """
+    Here are some suggestions and examples for setting SMART goals based on industry best practices:
 
-@app.route('/')
-def index():
-    return render_template('index.html', user_stories=user_stories)
+    1. **Specific:**
+        - Clearly define what you want to accomplish.
+        - Example: "Increase the team’s sales by 15% over the next quarter."
 
-@app.route('/add', methods=['POST'])
-def add_user_story():
-    title = request.form['title']
-    description = request.form['description']
-    
-    if title and description:
-        story_id = len(user_stories) + 1
-        user_stories[story_id] = {'title': title, 'description': description}
-        flash('User story added successfully!')
-    else:
-        flash('Title and Description are required!')
+    2. **Measurable:**
+        - Determine how you will measure progress and completion.
+        - Example: "Track sales through the CRM system and provide weekly reports."
 
-    return redirect(url_for('index'))
+    3. **Achievable:**
+        - Ensure the goal is realistic, given available resources and constraints.
+        - Example: "Provide additional training and resources to the sales team to improve their performance."
 
-@app.route('/edit/<int:story_id>', methods=['GET', 'POST'])
-def edit_user_story(story_id):
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form['description']
-        
-        if title and description:
-            user_stories[story_id] = {'title': title, 'description': description}
-            flash('User story updated successfully!')
-            return redirect(url_for('index'))
-        else:
-            flash('Title and Description are required!')
-    
-    return render_template('edit.html', story_id=story_id, user_story=user_stories[story_id])
+    4. **Relevant:**
+        - Make sure the goal aligns with broader business objectives.
+        - Example: "Increasing sales aligns with the company’s strategy to expand market share."
 
-@app.route('/delete/<int:story_id>', methods=['POST'])
-def delete_user_story(story_id):
-    if story_id in user_stories:
-        del user_stories[story_id]
-        flash('User story deleted successfully!')
-    else:
-        flash('User story not found!')
+    5. **Time-bound:**
+        - Set a clear deadline for achieving the goal.
+        - Example: "Achieve the sales increase by the end of the next quarter."
 
-    return redirect(url_for('index'))
+    **Best Practices:**
+    - Break down larger goals into smaller, manageable tasks.
+    - Regularly review and adjust goals as needed.
+    - Involve the team in the goal-setting process to ensure buy-in and commitment.
+    - Use tools and software to track progress and provide feedback.
+    - Celebrate achievements and learn from setbacks.
 
-if __name__ == '__main__':
-    app.run(debug=True)
-```
+    For more detailed guidance, you can refer to the following resources:
+    - [The Ultimate Guide to S.M.A.R.T. Goals – Forbes Advisor](https://www.forbes.com/advisor/business/smart-goals/)
+    - [How to write SMART goals (with examples) - Atlassian](https://www.atlassian.com/blog/productivity/how-to-write-smart-goals)
+    - [Setting Smart Goals for Professional Development - LinkedIn Learning](https://learning.linkedin.com/resources/career-development/smart-goals-professional-development)
+    """
+    return suggestions
 
-#### `templates/index.html`
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Planning Poker App</title>
-</head>
-<body>
-    <h1>Planning Poker App</h1>
-    
-    <form action="{{ url_for('add_user_story') }}" method="post">
-        <h2>Add User Story</h2>
-        <label for="title">Title:</label><br>
-        <input type="text" id="title" name="title"><br><br>
-        <label for="description">Description:</label><br>
-        <textarea id="description" name="description"></textarea><br><br>
-        <input type="submit" value="Add">
-    </form>
-    
-    <h2>User Stories</h2>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-    
-    <ul>
-        {% for story_id, story in user_stories.items() %}
-            <li>
-                <strong>{{ story.title }}</strong>: {{ story.description }}
-                <a href="{{ url_for('edit_user_story', story_id=story_id) }}">Edit</a>
-                <form action="{{ url_for('delete_user_story', story_id=story_id) }}" method="post" style="display:inline;">
-                    <input type="submit" value="Delete">
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
-```
-
-#### `templates/edit.html`
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit User Story</title>
-</head>
-<body>
-    <h1>Edit User Story</h1>
-    
-    <form action="{{ url_for('edit_user_story', story_id=story_id) }}" method="post">
-        <label for="title">Title:</label><br>
-        <input type="text" id="title" name="title" value="{{ user_story.title }}"><br><br>
-        <label for="description">Description:</label><br>
-        <textarea id="description" name="description">{{ user_story.description }}</textarea><br><br>
-        <input type="submit" value="Update">
-    </form>
-    
-    <a href="{{ url_for('index') }}">Back to User Stories</a>
-</body>
-</html>
-```
-
-#### `test_app.py`
-
-```python
+# Unit Tests
 import unittest
-from app import app, user_stories
 
-class PlanningPokerAppTestCase(unittest.TestCase):
-    def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
+class TestSmartGoalFeatures(unittest.TestCase):
 
-    def test_add_user_story(self):
-        response = self.app.post('/add', data=dict(title='Test Story', description='This is a test story'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('Test Story', [story['title'] for story in user_stories.values()])
+    def test_gather_team_objectives(self):
+        # This test should be conducted interactively as it involves user inputs
+        pass
 
-    def test_edit_user_story(self):
-        self.app.post('/add', data=dict(title='Test Story', description='This is a test story'))
-        story_id = next(iter(user_stories))
-        response = self.app.post(f'/edit/{story_id}', data=dict(title='Updated Story', description='Updated description'))
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(user_stories[story_id]['title'], 'Updated Story')
+    def test_create_smart_goal(self):
+        objectives = {
+            'specific': 'Increase sales',
+            'measurable': '15% increase',
+            'achievable': 'With additional training',
+            'relevant': 'Aligns with business strategy',
+            'time_bound': 'Next quarter'
+        }
+        expected_smart_goal = {
+            "Specific": 'Increase sales',
+            "Measurable": '15% increase',
+            "Achievable": 'With additional training',
+            "Relevant": 'Aligns with business strategy',
+            "Time-bound": 'Next quarter'
+        }
+        self.assertEqual(create_smart_goal(objectives), expected_smart_goal)
 
-    def test_delete_user_story(self):
-        self.app.post('/add', data=dict(title='Test Story', description='This is a test story'))
-        story_id = next(iter(user_stories))
-        response = self.app.post(f'/delete/{story_id}')
-        self.assertEqual(response.status_code, 302)
-        self.assertNotIn(story_id, user_stories)
+    def test_provide_smart_goal_suggestions(self):
+        suggestions = provide_smart_goal_suggestions()
+        self.assertIn("Here are some suggestions and examples for setting SMART goals", suggestions)
+        self.assertIn("For more detailed guidance, you can refer to the following resources", suggestions)
 
 if __name__ == '__main__':
     unittest.main()
 ```
 
-This is the complete content for implementing the "User Story Input" feature with unit tests and documentation.
+### Documentation
+
+```markdown
+# Goal Setting Assistance Documentation
+
+## Overview
+The Goal Setting Assistance feature helps team leaders set clear and achievable goals for their teams using the SMART criteria. This feature gathers specific inputs from the user, transforms these inputs into SMART goals, and provides suggestions based on industry best practices.
+
+## Functions
+
+### `gather_team_objectives()`
+This function collects specific inputs from the user regarding the team's objectives.
+
+**Returns:**
+- A dictionary containing the specific, measurable, achievable, relevant, and time-bound components of the goal.
+
+### `create_smart_goal(objectives)`
+This function transforms the collected inputs into a SMART goal.
+
+**Parameters:**
+- `objectives` (dict): A dictionary containing the specific, measurable, achievable, relevant, and time-bound components of the goal.
+
+**Returns:**
+- A dictionary representing the SMART goal.
+
+### `provide_smart_goal_suggestions()`
+This function provides suggestions and examples for setting SMART goals based on industry best practices.
+
+**Returns:**
+- A string containing suggestions and examples for setting SMART goals.
+
+## Unit Tests
+The following unit tests are included to ensure the functionality works as expected:
+
+1. `test_gather_team_objectives()`: This test should be conducted interactively as it involves user inputs.
+2. `test_create_smart_goal()`: Tests the transformation of collected inputs into a SMART goal.
+3. `test_provide_smart_goal_suggestions()`: Tests the content of the suggestions provided.
+
+To run the tests, execute the following command:
+```
+python -m unittest <test_file_name>.py
+```
+```
