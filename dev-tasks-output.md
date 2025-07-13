@@ -1,136 +1,87 @@
 ```python
-def gather_team_objectives():
-    objectives = {}
-    objectives['specific'] = input("What specific goal do you want to achieve? ")
-    objectives['measurable'] = input("How will you measure the success of this goal? ")
-    objectives['achievable'] = input("Is this goal achievable? What resources are needed? ")
-    objectives['relevant'] = input("Why is this goal relevant to your team? ")
-    objectives['time_bound'] = input("What is the timeframe to achieve this goal? ")
-    return objectives
+class SprintAnalysis:
+    def __init__(self, sprint_data):
+        """
+        Initialize with historical sprint data.
+        :param sprint_data: List of dictionaries with keys 'sprint_number', 'completed_story_points'
+        """
+        self.sprint_data = sprint_data
 
-def create_smart_goal(objectives):
-    smart_goal = {
-        "Specific": objectives['specific'],
-        "Measurable": objectives['measurable'],
-        "Achievable": objectives['achievable'],
-        "Relevant": objectives['relevant'],
-        "Time-bound": objectives['time_bound']
-    }
-    return smart_goal
+    def calculate_velocity(self):
+        """
+        Calculate the average velocity from past sprints.
+        :return: Average velocity as float
+        """
+        total_story_points = sum([sprint['completed_story_points'] for sprint in self.sprint_data])
+        number_of_sprints = len(self.sprint_data)
+        return total_story_points / number_of_sprints if number_of_sprints > 0 else 0
 
-def provide_smart_goal_suggestions():
-    suggestions = """
-    Here are some suggestions and examples for setting SMART goals based on industry best practices:
+    def suggest_capacity(self, team_availability):
+        """
+        Suggest optimal team capacity for the next sprint based on historical velocity and team availability.
+        :param team_availability: A float representing percentage of team availability (0 to 1)
+        :return: Suggested capacity in story points
+        """
+        average_velocity = self.calculate_velocity()
+        return average_velocity * team_availability
 
-    1. **Specific:**
-        - Clearly define what you want to accomplish.
-        - Example: "Increase the team’s sales by 15% over the next quarter."
+    def recommend_user_stories(self, backlog, team_capacity):
+        """
+        Recommend user stories for the next sprint based on priority and team capacity.
+        :param backlog: List of dictionaries with keys 'story_id', 'priority', 'story_points'
+        :param team_capacity: Capacity in story points
+        :return: List of recommended story IDs
+        """
+        backlog.sort(key=lambda x: x['priority'], reverse=True)
+        selected_stories = []
+        current_capacity = 0
 
-    2. **Measurable:**
-        - Determine how you will measure progress and completion.
-        - Example: "Track sales through the CRM system and provide weekly reports."
+        for story in backlog:
+            if current_capacity + story['story_points'] <= team_capacity:
+                selected_stories.append(story['story_id'])
+                current_capacity += story['story_points']
 
-    3. **Achievable:**
-        - Ensure the goal is realistic, given available resources and constraints.
-        - Example: "Provide additional training and resources to the sales team to improve their performance."
+        return selected_stories
 
-    4. **Relevant:**
-        - Make sure the goal aligns with broader business objectives.
-        - Example: "Increasing sales aligns with the company’s strategy to expand market share."
-
-    5. **Time-bound:**
-        - Set a clear deadline for achieving the goal.
-        - Example: "Achieve the sales increase by the end of the next quarter."
-
-    **Best Practices:**
-    - Break down larger goals into smaller, manageable tasks.
-    - Regularly review and adjust goals as needed.
-    - Involve the team in the goal-setting process to ensure buy-in and commitment.
-    - Use tools and software to track progress and provide feedback.
-    - Celebrate achievements and learn from setbacks.
-
-    For more detailed guidance, you can refer to the following resources:
-    - [The Ultimate Guide to S.M.A.R.T. Goals – Forbes Advisor](https://www.forbes.com/advisor/business/smart-goals/)
-    - [How to write SMART goals (with examples) - Atlassian](https://www.atlassian.com/blog/productivity/how-to-write-smart-goals)
-    - [Setting Smart Goals for Professional Development - LinkedIn Learning](https://learning.linkedin.com/resources/career-development/smart-goals-professional-development)
-    """
-    return suggestions
 
 # Unit Tests
 import unittest
 
-class TestSmartGoalFeatures(unittest.TestCase):
+class TestSprintAnalysis(unittest.TestCase):
+    def setUp(self):
+        self.sprint_data = [
+            {'sprint_number': 1, 'completed_story_points': 20},
+            {'sprint_number': 2, 'completed_story_points': 25},
+            {'sprint_number': 3, 'completed_story_points': 30}
+        ]
+        self.analysis = SprintAnalysis(self.sprint_data)
 
-    def test_gather_team_objectives(self):
-        # This test should be conducted interactively as it involves user inputs
-        pass
+    def test_calculate_velocity(self):
+        self.assertEqual(self.analysis.calculate_velocity(), 25.0)
 
-    def test_create_smart_goal(self):
-        objectives = {
-            'specific': 'Increase sales',
-            'measurable': '15% increase',
-            'achievable': 'With additional training',
-            'relevant': 'Aligns with business strategy',
-            'time_bound': 'Next quarter'
-        }
-        expected_smart_goal = {
-            "Specific": 'Increase sales',
-            "Measurable": '15% increase',
-            "Achievable": 'With additional training',
-            "Relevant": 'Aligns with business strategy',
-            "Time-bound": 'Next quarter'
-        }
-        self.assertEqual(create_smart_goal(objectives), expected_smart_goal)
+    def test_suggest_capacity(self):
+        self.assertEqual(self.analysis.suggest_capacity(0.8), 20.0)
 
-    def test_provide_smart_goal_suggestions(self):
-        suggestions = provide_smart_goal_suggestions()
-        self.assertIn("Here are some suggestions and examples for setting SMART goals", suggestions)
-        self.assertIn("For more detailed guidance, you can refer to the following resources", suggestions)
+    def test_recommend_user_stories(self):
+        backlog = [
+            {'story_id': 1, 'priority': 3, 'story_points': 8},
+            {'story_id': 2, 'priority': 5, 'story_points': 13},
+            {'story_id': 3, 'priority': 1, 'story_points': 5}
+        ]
+        self.assertEqual(self.analysis.recommend_user_stories(backlog, 20), [2, 1])
 
 if __name__ == '__main__':
     unittest.main()
+
 ```
 
-### Documentation
+### Documentation:
 
-```markdown
-# Goal Setting Assistance Documentation
+- **SprintAnalysis Class**: Analyzes historical sprint data to provide insights on team velocity and capacity.
+  - **calculate_velocity()**: Calculates average sprint velocity.
+  - **suggest_capacity(team_availability)**: Suggests optimal capacity based on historical velocity and team availability.
+  - **recommend_user_stories(backlog, team_capacity)**: Recommends user stories for the next sprint based on priority and capacity.
 
-## Overview
-The Goal Setting Assistance feature helps team leaders set clear and achievable goals for their teams using the SMART criteria. This feature gathers specific inputs from the user, transforms these inputs into SMART goals, and provides suggestions based on industry best practices.
+- **Unit Tests**: Provided for each method to ensure accurate functionality.
 
-## Functions
-
-### `gather_team_objectives()`
-This function collects specific inputs from the user regarding the team's objectives.
-
-**Returns:**
-- A dictionary containing the specific, measurable, achievable, relevant, and time-bound components of the goal.
-
-### `create_smart_goal(objectives)`
-This function transforms the collected inputs into a SMART goal.
-
-**Parameters:**
-- `objectives` (dict): A dictionary containing the specific, measurable, achievable, relevant, and time-bound components of the goal.
-
-**Returns:**
-- A dictionary representing the SMART goal.
-
-### `provide_smart_goal_suggestions()`
-This function provides suggestions and examples for setting SMART goals based on industry best practices.
-
-**Returns:**
-- A string containing suggestions and examples for setting SMART goals.
-
-## Unit Tests
-The following unit tests are included to ensure the functionality works as expected:
-
-1. `test_gather_team_objectives()`: This test should be conducted interactively as it involves user inputs.
-2. `test_create_smart_goal()`: Tests the transformation of collected inputs into a SMART goal.
-3. `test_provide_smart_goal_suggestions()`: Tests the content of the suggestions provided.
-
-To run the tests, execute the following command:
-```
-python -m unittest <test_file_name>.py
-```
-```
+This implementation meets the acceptance criteria by providing a summary of past sprint velocities, suggesting optimal team capacity, and recommending user stories for inclusion based on priority and team capacity.
